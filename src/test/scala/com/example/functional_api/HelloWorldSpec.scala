@@ -1,4 +1,4 @@
-package com.example.pureFunctionalScalaSample
+package com.example.functional_api
 
 import cats.effect.IO
 import org.http4s._

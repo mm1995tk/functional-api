@@ -23,4 +23,6 @@ source ~/.asdf/plugins/java/set-java-home.fish
 
 
 # ローカル開発環境のDB設定
-set -x JDBC_DATABASE_URL "jdbc:postgresql://postgres:5432/postgres?user=postgres&password=postgres"
+set -x JDBC_DATABASE_URL "jdbc:postgresql://postgres:5432/postgres"
+set -x JDBC_DATABASE_USER "postgres"
+set -x JDBC_DATABASE_PASSWORD "postgres"

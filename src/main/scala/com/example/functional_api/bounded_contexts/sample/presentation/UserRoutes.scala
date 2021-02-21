@@ -6,21 +6,21 @@ import cats.implicits.toSemigroupKOps
 import com.example.functional_api.bounded_contexts.sample.domain.support.UnExpectedError
 import com.example.functional_api.bounded_contexts.sample.domain.user.{Id, UserNotFoundError, UserRepository}
 import com.example.functional_api.bounded_contexts.sample.infrastructure.user.UserRepositoryImpl
+import com.example.functional_api.bounded_contexts.sample.presentation.support.RoutesBase
 import com.example.functional_api.bounded_contexts.sample.usecase.application.user.{GetUserUseCase, GetUsersUseCase}
-import com.example.functional_api.bounded_contexts.sample.usecase.dto.response.ErrorResponseModel
 import doobie.util.transactor.Transactor
 import io.circe.generic.auto.exportEncoder
 import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.dsl.Http4sDsl
 
-case class UserRoutes[F[+_] : Async : ContextShift](dsl: Http4sDsl[F], xa: Transactor[F]) {
+case class UserRoutes[F[+_] : Async : ContextShift]()(implicit dsl: Http4sDsl[F], xa: Transactor[F]) extends RoutesBase(dsl){
 
   import dsl._
 
   implicit lazy val repository: UserRepository[F] = new UserRepositoryImpl[F](xa)
 
-  def userRoutes: HttpRoutes[F] =
+  val userControllers: HttpRoutes[F] =
     index <+> show
 
   private def index: HttpRoutes[F] = HttpRoutes.of[F] {
@@ -34,13 +34,13 @@ case class UserRoutes[F[+_] : Async : ContextShift](dsl: Http4sDsl[F], xa: Trans
       val getUserUseCase = GetUserUseCase()
       val responseOpt = for (id <- Id(userId)) yield
         Monad[F].flatMap(getUserUseCase(id)) {
-          case Left(err) => err match {
-            case UnExpectedError => InternalServerError(ErrorResponseModel(500, "internal error"))
-            case UserNotFoundError => BadRequest(ErrorResponseModel(400, "not found"))
-          }
           case Right(res) => Ok(res)
+          case Left(err) => err match {
+            case UnExpectedError => internalServerError
+            case UserNotFoundError => badRequest
+          }
         }
-      responseOpt getOrElse BadRequest()
+      responseOpt getOrElse badRequest
   }
 
 }

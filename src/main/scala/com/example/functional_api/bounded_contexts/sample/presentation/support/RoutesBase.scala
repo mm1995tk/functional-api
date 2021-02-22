@@ -11,15 +11,13 @@ import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.dsl.Http4sDsl
 import io.circe.generic.auto.exportEncoder
 
-
-trait RoutesInterface[F[+_]] {
-  def handleError(err: AppError): F[Response[F]]
-}
-
 abstract class RoutesBase[F[+_] : Async : ContextShift](dsl: Http4sDsl[F]) {
+
+  abstract def handleError(err: AppError): F[Response[F]]
+
   import dsl._
 
-  private val config: Config = ConfigFactory.load()
+  lazy private val config: Config = ConfigFactory.load()
 
   private val errorResponseModel = (errorTypePath: String) =>
     ErrorResponseModel(

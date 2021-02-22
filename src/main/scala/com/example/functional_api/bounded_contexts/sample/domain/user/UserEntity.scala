@@ -1,7 +1,5 @@
 package com.example.functional_api.bounded_contexts.sample.domain.user
 
-import com.example.functional_api.bounded_contexts.sample.domain.support.AppError
-
 case class UserEntity(id: Id, name: UserName, age: NaturalNumber)
 
 final case class Id(value: Int) extends AnyVal
@@ -28,6 +26,3 @@ object NaturalNumber {
 
   def validate(value: Int): Boolean = value > 0
 }
-
-trait UserError extends AppError
-case object UserNotFoundError extends UserError

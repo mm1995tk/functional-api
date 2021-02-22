@@ -1,29 +1,37 @@
 package com.example.functional_api.bounded_contexts.sample.presentation.support
 
 import cats.effect.{Async, ContextShift}
+import com.example.functional_api.bounded_contexts.sample.domain.support.AppError
 import com.example.functional_api.bounded_contexts.sample.usecase.dto.response.ErrorResponseModel
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.encoding.ReprAsObjectEncoder.deriveReprAsObjectEncoder
+import io.circe.syntax._
+import org.http4s.Response
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.dsl.Http4sDsl
-import io.circe.syntax._
 import io.circe.generic.auto.exportEncoder
-import org.http4s.Response
+
+
+trait RoutesInterface[F[+_]] {
+  def handleError(err: AppError): F[Response[F]]
+}
 
 abstract class RoutesBase[F[+_] : Async : ContextShift](dsl: Http4sDsl[F]) {
-
   import dsl._
 
   private val config: Config = ConfigFactory.load()
 
   private val errorResponseModel = (errorTypePath: String) =>
-    ErrorResponseModel(config.getInt(s"$errorTypePath.code"), config.getString(s"$errorTypePath.message")).asJson
+    ErrorResponseModel(
+      config.getInt(s"error.$errorTypePath.code"),
+      config.getString(s"error.$errorTypePath.message")
+    ).asJson
 
   val internalServerError: F[Response[F]] = InternalServerError {
-    errorResponseModel("error.internalServerError")
+    errorResponseModel("internalServerError")
   }
 
   val badRequest: F[Response[F]] = BadRequest {
-    errorResponseModel("error.badRequest")
+    errorResponseModel("badRequest")
   }
 }

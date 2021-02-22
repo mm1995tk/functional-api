@@ -19,8 +19,8 @@ object AppServer extends IOApp {
     AppServer.stream[IO].compile.drain.as(ExitCode.Success)
 
   def stream[F[+_] : ConcurrentEffect : Async : ContextShift](implicit T: Timer[F]): Stream[F, Nothing] = {
-    implicit val dsl: Http4sDsl[F] = new Http4sDsl[F] {}
-    implicit val xa: Aux[F, Unit] = DBSession.primary
+    implicit lazy val dsl: Http4sDsl[F] = new Http4sDsl[F] {}
+    implicit lazy val xa: Aux[F, Unit] = DBSession.primary
 
     val httpApp = Router(
       "users" -> UserRoutes[F]().userControllers
